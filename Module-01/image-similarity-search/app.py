@@ -10,9 +10,10 @@ DATA_DIR = Path("Data")
 DATASET_DIR = DATA_DIR / "images_folder"
 DEFAULT_QUERY_IMAGE = DATA_DIR / "query.jpg"
 
+
 # Cache dataset vectors to avoid Streamlit rerun
 @st.cache_data
-def get_dataset_vectors(dataset_dir): 
+def get_dataset_vectors(dataset_dir):
     return load_dataset_vectors(dataset_dir)
 
 
