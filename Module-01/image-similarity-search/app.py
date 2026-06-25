@@ -6,7 +6,7 @@ from PIL import Image
 from main import find_similar_images, load_dataset_vectors
 
 
-DATA_DIR = Path("Data")
+DATA_DIR = Path(__file__).parent / "Data"
 DATASET_DIR = DATA_DIR / "images_folder"
 DEFAULT_QUERY_IMAGE = DATA_DIR / "query.jpg"
 
