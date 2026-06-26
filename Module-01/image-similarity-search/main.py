@@ -14,14 +14,14 @@ def process_image(image, size=IMAGE_SIZE):
     # Read image in grayscale to reduce the number of channels
     if isinstance(image, str):
         img = cv2.imread(image, cv2.IMREAD_GRAYSCALE)
+
+        if img is None:
+            raise ValueError(f"Cannot load image: {image}")
     else:
         img = np.array(image)
 
         if len(img.shape) == 3:
             img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-
-    if img is None:
-        raise ValueError(f"Cannot load image: {image}")
 
     # Resize every image to the same size so vectors have equal length.
     img_resized = cv2.resize(img, size)
