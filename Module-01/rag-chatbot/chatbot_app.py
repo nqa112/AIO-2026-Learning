@@ -7,6 +7,7 @@ from rag import process_pdf, rag
 st.set_page_config(page_title="PDF RAG Chatbot", layout="wide")
 st.title("PDF RAG Chatbot")
 
+# Giữ dữ liệu PDF và lịch sử chat khi Streamlit chạy lại trang
 for k, v in {"collection": None, "pdf_name": "", "chat_history": []}.items():
     st.session_state.setdefault(k, v)
 
