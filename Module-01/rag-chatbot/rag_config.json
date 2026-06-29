@@ -1,0 +1,11 @@
+{
+  "chunk_size": 1000,
+  "chunk_overlap": 200,
+  "search_k": 15,
+  "final_k": 5,
+  "max_distance": 0.5,
+  "keyword_weight": 0.08,
+  "mmr_lambda": 0.7,
+  "embedding_batch_size": 16,
+  "max_tokens": 1024
+}
