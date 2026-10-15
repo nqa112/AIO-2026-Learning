@@ -1,5 +1,6 @@
 import math
 import re
+from collections import Counter
 
 from src.config import RagConfig
 from src.schemas import RetrievedChunk
@@ -39,13 +40,16 @@ class Retriever:
         distances = result["distances"][0]
         embeddings = result["embeddings"][0]
         query_terms = self._keywords(question)
+        doc_terms_list = [self._keywords(doc) for doc in docs]
+        bm25_scores = self._bm25_scores(query_terms, doc_terms_list)
 
         candidates = []
-        for doc, metadata, distance, embedding in zip(docs, metadatas, distances, embeddings):
+        for doc, metadata, distance, embedding, bm25_score in zip(
+            docs, metadatas, distances, embeddings, bm25_scores
+        ):
             semantic_score = 1 - distance
-            # Keyword boost helps exact terms like model names, APIs, and formulas.
-            keyword_score = self._keyword_overlap(query_terms, self._keywords(doc))
-            rank_score = semantic_score + (self.config.keyword_weight * keyword_score)
+            # BM25 helps exact terms like model names, APIs, and formulas.
+            rank_score = semantic_score + (self.config.keyword_weight * bm25_score)
             candidates.append(
                 RetrievedChunk(
                     text=doc,
@@ -97,14 +101,43 @@ class Retriever:
         return selected
 
     def _keywords(self, text):
-        """Extract simple keywords from text."""
-        return {token for token in re.findall(r"\w+", text.lower()) if len(token) > 2}
+        """Extract normalized tokens from text."""
+        return [token for token in re.findall(r"\w+", text.lower()) if len(token) > 2]
 
-    def _keyword_overlap(self, query_terms, doc_terms):
-        """Calculate how many question keywords appear in a chunk."""
-        if not query_terms or not doc_terms:
-            return 0
-        return len(query_terms & doc_terms) / len(query_terms)
+    def _bm25_scores(self, query_terms, docs_terms, k1=1.5, b=0.75):
+        """Calculate BM25 scores for each document."""
+        if not query_terms or not docs_terms:
+            return [0.0 for _ in docs_terms]
+
+        doc_count = len(docs_terms)
+        avg_doc_len = sum(len(doc_terms) for doc_terms in docs_terms) / max(doc_count, 1)
+        query_terms = set(query_terms)
+        term_doc_freq = {
+            term: sum(1 for doc_terms in docs_terms if term in doc_terms)
+            for term in query_terms
+        }
+        docs_term_freq = [Counter(doc_terms) for doc_terms in docs_terms]
+
+        scores = []
+        for doc_terms, term_freq in zip(docs_terms, docs_term_freq):
+            score = 0.0
+            doc_len = len(doc_terms)
+            length_norm = k1 * (1 - b + (b * doc_len / max(avg_doc_len, 1)))
+
+            for term in query_terms:
+                tf = term_freq.get(term, 0)
+                if tf == 0:
+                    continue
+                df = term_doc_freq[term]
+                idf = math.log(1 + ((doc_count - df + 0.5) / (df + 0.5)))
+                score += idf * ((tf * (k1 + 1)) / (tf + length_norm))
+
+            scores.append(score)
+
+        max_score = max(scores, default=0.0)
+        if max_score > 0:
+            return [score / max_score for score in scores]
+        return scores
 
     def _cosine_similarity(self, vec_a, vec_b):
         """Calculate cosine similarity between two vectors."""

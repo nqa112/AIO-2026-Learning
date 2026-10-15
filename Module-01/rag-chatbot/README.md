@@ -13,7 +13,7 @@ A Streamlit RAG chatbot for asking source-grounded questions over multiple uploa
 
 - Multi-PDF notebook indexing with page metadata.
 - Configurable chunking with batched Hugging Face embeddings.
-- ChromaDB vector search with keyword boost and MMR diversity.
+- ChromaDB vector search with BM25 reranking and MMR diversity.
 - Source-grounded answers with concise citations and Vietnamese answer support.
 - Indexing progress bar and compact indexing report.
 - JSON-based RAG configuration.
@@ -26,7 +26,7 @@ A Streamlit RAG chatbot for asking source-grounded questions over multiple uploa
 ├── rag_config.json     # RAG settings
 └── src/
     ├── indexing.py     # PDF parsing, chunking, embedding, Chroma indexing
-    ├── retrieval.py    # Vector search, keyword boost, MMR selection
+    ├── retrieval.py    # Vector search, BM25 reranking, MMR selection
     ├── llm.py          # Hugging Face calls, prompt, answer, citations
     ├── service.py      # Connects indexing, retrieval, and LLM steps
     └── schemas.py      # Shared data classes
